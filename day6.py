@@ -9,12 +9,16 @@ def _create_banks(input_values):
 
 
 class Memory(object):
-    def __init__(self, input_values):
+    def __init__(self, input_values, iterations=1):
         self._banks = _create_banks(input_values)
         self._seen_banks = list()
+        self._iterations = iterations
+        self._iteration = 0
+        self._steps = 0
 
     def _bank_to_process(self):
         bank = 0
+        # find the bank with the most blocks
         for idx, blocks in self._banks.items():
             if idx == 0:
                 bank = idx
@@ -39,29 +43,57 @@ class Memory(object):
             bank = next_bank
 
     def _store(self):
-        blocks_for_banks = list(self._banks.values())
-        self._seen_banks.append(blocks_for_banks)
+        # store only if no iterations found yet
+        if self._iteration == 0:
+            blocks_for_banks = list(self._banks.values())
+            self._seen_banks.append(blocks_for_banks)
+
+    def _reset_seen_banks(self):
+        # reset only if first iteration found
+        if self._iteration == 0:
+            self._steps = 0
+            self._seen_banks = list()
+            # store current bank as the only one that is searched
+            self._store()
+
+    def _iterations_reached(self):
+        if self._iterations == self._iteration + 1:
+            return True
+        else:
+            # reset steps and only compare against found match
+            self._reset_seen_banks()
+        self._iteration += 1
+        return False
 
     def _found_match(self):
         current = list(self._banks.values())
         for seen_bank in self._seen_banks:
-            if current == seen_bank:
+            if current == seen_bank and self._iterations_reached():
                 return True
         return False
 
     def reallocate(self):
-        step = 0
         while not self._found_match():
-            step += 1
+            self._steps += 1
             self._store()
             bank = self._bank_to_process()
             self._reallocate_bank(bank)
-        return step
+        return self._steps
+
+
+def puzzle1():
+    memory = Memory(INPUT)
+    print(memory.reallocate())
+
+
+def puzzle2():
+    memory = Memory(INPUT, 2)
+    print(memory.reallocate())
 
 
 def main():
-    memory = Memory(INPUT)
-    print(memory.reallocate())
+    puzzle1()
+    puzzle2()
 
 
 if __name__=='__main__':
