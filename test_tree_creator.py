@@ -22,3 +22,9 @@ class TestTreeCreator(TestCase):
         sut = TreeCreator(INPUT)
         sut.create()
         self.assertEqual('tknk', sut.get_base_node().name)
+
+    def test_find_unbalanced_node(self):
+        sut = TreeCreator(INPUT)
+        sut.create()
+        self.assertEqual('ugml', sut.find_unbalanced_node().name)
+        self.assertEqual(60, sut.calculate_correct_weight_for_unbalanced_node(sut.find_unbalanced_node()))
